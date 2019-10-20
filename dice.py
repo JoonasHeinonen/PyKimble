@@ -10,7 +10,6 @@ class Dice(object):
         self.x =  x
         self.y = y
         self.value = self.randValue()
-        print(self.value)
     
     def draw(self, win):
         # pygame.draw.rect(win, (0, 0, 0), (self.x - 8, self.y - 8, (self.width + 16), self.height + 16))
@@ -20,6 +19,9 @@ class Dice(object):
         pygame.draw.circle(win, (255, 0, 0), (self.x + self.width, self.y), 8)
         pygame.draw.circle(win, (255, 0, 0), (self.x, self.y + self.height), 8)
         pygame.draw.circle(win, (255, 0, 0), (self.x + self.width, self.y + self.height), 8)
+        self.drawDots(win, self.value)
+    
+    def drawDots(self, win, value):
         if (self.value == 1):
             pygame.draw.circle(win, (255, 255, 255), (self.x + 30, self.y + 30), self.dotRadius)
         elif (self.value == 2):
@@ -47,6 +49,9 @@ class Dice(object):
             pygame.draw.circle(win, (255, 255, 255), (self.x + 50, self.y + 10), self.dotRadius)
             pygame.draw.circle(win, (255, 255, 255), (self.x + 50, self.y + 30), self.dotRadius)
             pygame.draw.circle(win, (255, 255, 255), (self.x + 50, self.y + 50), self.dotRadius)
+
+    def setValue(self, value):
+        self.value = value
 
     def randValue(self):
         rand = random.randrange(1, 7)
