@@ -10,6 +10,19 @@ class Board(object):
         self.y = y
     
     def draw(self, win):
+        # Board base
+        pygame.draw.line(win, (0, 0, 0), (self.x - 352, 110 + self.incer), (self.x - 352, 479), 2)
+        pygame.draw.line(win, (0, 0, 0), (self.x + 350, 110 + self.incer), (self.x + 350, 479), 2)
+
+        pygame.draw.line(win, (0, 0, 0), (self.x - 180, 48), (self.x + 179, 48), 2)
+        pygame.draw.line(win, (0, 0, 0), (self.x - 180, 540 + self.incer), (self.x + 179, 540 + self.incer), 2)
+        # Corners @1
+        pygame.draw.line(win, (0, 0, 0), (self.x - 352, 110 + self.incer), (self.x - 180, 48), 2)
+        pygame.draw.line(win, (0, 0, 0), (self.x + 350, 110 + self.incer), (self.x + 178, 48), 2)
+        # Corners @2
+        pygame.draw.line(win, (0, 0, 0), (self.x - 182, 540 + self.incer), (self.x - 352, 479), 2)
+        pygame.draw.line(win, (0, 0, 0), (self.x + 180, 540 + self.incer), (self.x + 350, 479), 2)
+        # Board base
         # Circle Path
         pygame.draw.circle(win, (0, 0, 0), (self.x, self.y), 260)
         # Circle Path Bordering
