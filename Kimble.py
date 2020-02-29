@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pygame
 import sys
 import time
@@ -8,8 +10,14 @@ from place import Place
 from piece import Piece
 from gui import Gui
 
+
+
+# Our only constant variables in code
+GAMESCREEN_WIDTH = 800
+GAMESCREEN_HEIGHT = 700
+
 pygame.init()
-win = pygame.display.set_mode((800, 700))
+win = pygame.display.set_mode((GAMESCREEN_WIDTH, GAMESCREEN_HEIGHT))
 pygame.display.set_caption("PyKimble")
 
 clock = pygame.time.Clock()
@@ -24,6 +32,7 @@ startButtonClicked = (0, 155, 0)
 buttonOff = (60, 60, 60)
 startButton = Button (startButtonColor, 370, 434, 60, 20, "Roll!", 18, 4)
 turnButton = Button(startButtonColor, 10, 670, 60, 20, "Turn!", 18, 4)
+reset_button = Button(startButtonColor, 370, 670, 60, 20, "Reset", 18, 4)
 buttons_off = False
 
 # Arena
@@ -102,12 +111,17 @@ red_victory = False
 blue_victory = False
 
 font = pygame.font.SysFont("arial", 12)
+status_font = pygame.font.SysFont("arial", 30)
+status_font.set_bold(True)
+
 text = "Start your game!"
 gui_text = font.render(text, True, (0, 0, 0))
 
-moveSound = pygame.mixer.Sound('sounds/move.wav')
-diceSound = pygame.mixer.Sound('sounds/dice.wav')
-eatSound = pygame.mixer.Sound('sounds/eat.wav')
+current_piece = "No current piece available"
+current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
+
+status_text_gui_text = status_font.render("PyKimble", True, (255, 255, 255))
+status_text_rect = status_text_gui_text.get_rect(center=(GAMESCREEN_WIDTH / 2, 20))
 
 green_area_1 = [(0, 0), (0, 268), (268, 0)]
 green_area_2 = [(800, 700), (530, 700), (800, 430)]
@@ -117,10 +131,13 @@ green_area_1a = [(750, 50), (50, 700)]
 green_area_1b = [(0, 0), (800, 50)]
 green_area_1c = [(0, 0), (50, 700)]
 
+moveSound = pygame.mixer.Sound('sounds/move.wav')
+diceSound = pygame.mixer.Sound('sounds/dice.wav')
+eatSound = pygame.mixer.Sound('sounds/eat.wav')
 
+resetted = False
 
-def redrawGameWindow():
-    win.fill((0, 0, 150))
+def draw_all():
     pygame.draw.rect(win, (0, 180, 0), green_area_1a)
     pygame.draw.rect(win, (0, 180, 0), green_area_1b)
     pygame.draw.rect(win, (0, 180, 0), green_area_1c)
@@ -133,6 +150,7 @@ def redrawGameWindow():
     board.draw(win)
     dice.draw(win)
     startButton.draw(win)
+    reset_button.draw(win)
     turnButton.draw(win)
     for place in places:
         place.draw(win)
@@ -147,8 +165,16 @@ def redrawGameWindow():
     pygame.draw.rect(win, (0, 0, 0), (89, 664, 232, 27))
     pygame.draw.rect(win, (255, 255, 255), (90, 665, 230, 25))
     win.blit(gui_text, (100, 670))
+    pygame.draw.rect(win, (0, 0, 0), (489, 664, 232, 27))
+    pygame.draw.rect(win, (255, 255, 255), (490, 665, 230, 25))
+    win.blit(current_piece_gui_text, (500, 670))
+    win.blit(status_text_gui_text, status_text_rect)
+
+def redrawGameWindow():
+    win.fill((0, 0, 150))
+    draw_all()
     pygame.display.update()
-    
+
 run = True
 while run:
     clock.tick(60)
@@ -156,8 +182,16 @@ while run:
         if event.type == pygame.QUIT:
             run = False
     
-    """ Button activity """
+    """ Button activity --> Reset, start and turn """
     cur = pygame.mouse.get_pos()
+
+    if reset_button.x + reset_button.width > cur[0] > reset_button.x and reset_button.y + reset_button.height > cur[1] > reset_button.y:
+        reset_button.setColor((0, 200, 0))
+        if pygame.mouse.get_pressed()[0]:
+            resetted = True
+    else:
+        reset_button.setColor(startButtonColor)
+
     if buttons_off == False:
         if startButton.x + startButton.width > cur[0] > startButton.x and startButton.y + startButton.height > cur[1] > startButton.y:
             startButton.setColor((0, 200, 0))
@@ -225,7 +259,7 @@ while run:
                             blue_piece.x = piece_x + (35 * 3)
                             blue_piece.y = blues_y
                             blue_piece.moves = 0
-            elif (current_turn == 1):
+            if (current_turn == 1):
                 if (blue_piece.x == red_piece.x):
                     if (blue_piece.y == red_piece.y):
                         eatSound.play()
@@ -253,17 +287,13 @@ while run:
             if (current_turn == 0):
                 if (rolled == 1):
                     text = "Red player's piece: " + str(current_red_piece)
-                    print(text)
                     gui_text = font.render(text, True, (0, 0, 0))
-                    print("Value of moves (1): " + str(redPiece0.moves))
-                    print("Value of moves (2): " + str(redPiece1.moves))
-                    print("Value of moves (3): " + str(redPiece2.moves))
-                    print("Value of moves (4): " + str(redPiece3.moves))
                     if (current_red_piece == 0):
                         text = "Please start your turn, RED player!"
-                        print(text)
                         gui_text = font.render(text, True, (0, 0, 0))
                     if (current_red_piece == 1):
+                        current_piece = "Value of moves (1): " + str(redPiece0.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (redPiece0.moves == place.red_index):
                             redPiece0.x = place.x
                             redPiece0.y = place.y
@@ -273,6 +303,8 @@ while run:
                             redPiece0.y = place27.y
                             moveSound.play()
                     elif (current_red_piece == 2):
+                        current_piece = "Value of moves (2): " + str(redPiece1.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (redPiece1.moves == place.red_index):
                             redPiece1.x = place.x
                             redPiece1.y = place.y
@@ -282,6 +314,8 @@ while run:
                             redPiece1.y = place27.y
                             moveSound.play()
                     elif (current_red_piece == 3):
+                        current_piece = "Value of moves (3): " + str(redPiece2.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (redPiece2.moves == place.red_index):
                             redPiece2.x = place.x
                             redPiece2.y = place.y
@@ -291,6 +325,8 @@ while run:
                             redPiece2.y = place27.y
                             moveSound.play()
                     elif (current_red_piece == 4):
+                        current_piece = "Value of moves (4): " + str(redPiece3.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (redPiece3.moves == place.red_index):
                             redPiece3.x = place.x
                             redPiece3.y = place.y
@@ -303,24 +339,19 @@ while run:
                         if (redPiece1.x == place27.x and redPiece1.x == place27.x):
                             if (redPiece2.x == place27.x and redPiece2.x == place27.x):
                                 if (redPiece3.x == place27.x and redPiece3.x == place27.x):
-                                    text = "Red player is the winner!"
-                                    print(text)
-                                    gui_text = font.render(text, True, (255, 0, 0))
+                                    text = "Game over..."
+                                    gui_text = font.render(text, True, (0, 0, 255))
                                     red_victory = True
             elif (current_turn == 1):
                 if (rolled == 1):
                     text = "Blue player's piece: " + str(current_blue_piece)
-                    print(text)
                     gui_text = font.render(text, True, (0, 0, 0))
-                    print("Value of moves (1): " + str(bluePiece0.moves))
-                    print("Value of moves (2): " + str(bluePiece1.moves))
-                    print("Value of moves (3): " + str(bluePiece2.moves))
-                    print("Value of moves (4): " + str(bluePiece3.moves))
                     if (current_blue_piece == 0):
                         text = "Please start your turn, BLUE player!"
-                        print(text)
                         gui_text = font.render(text, True, (0, 0, 0))
                     if (current_blue_piece == 1):
+                        current_piece = "Value of moves (1): " + str(bluePiece0.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (bluePiece0.moves == place.blue_index):
                             bluePiece0.x = place.x
                             bluePiece0.y = place.y
@@ -330,6 +361,8 @@ while run:
                             bluePiece0.y = place13.y
                             moveSound.play()
                     elif (current_blue_piece == 2):
+                        current_piece = "Value of moves (2): " + str(bluePiece1.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (bluePiece1.moves == place.blue_index):
                             bluePiece1.x = place.x
                             bluePiece1.y = place.y
@@ -339,6 +372,8 @@ while run:
                             bluePiece1.y = place13.y
                             moveSound.play()
                     elif (current_blue_piece == 3):
+                        current_piece = "Value of moves (3): " + str(bluePiece2.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (bluePiece2.moves == place.blue_index):
                             bluePiece2.x = place.x
                             bluePiece2.y = place.y
@@ -348,6 +383,8 @@ while run:
                             bluePiece2.y = place13.y
                             moveSound.play()
                     elif (current_blue_piece == 4):
+                        current_piece = "Value of moves (4): " + str(bluePiece3.moves)
+                        current_piece_gui_text = font.render(current_piece, True, (0, 0, 0))
                         if (bluePiece3.moves == place.blue_index):
                             bluePiece3.x = place.x
                             bluePiece3.y = place.y
@@ -360,8 +397,7 @@ while run:
                         if (bluePiece1.x == place13.x and bluePiece1.x == place13.x):
                             if (bluePiece2.x == place13.x and bluePiece2.x == place13.x):
                                 if (bluePiece3.x == place13.x and bluePiece3.x == place13.x):
-                                    text = "Blue player is the winner!"
-                                    print(text)
+                                    text = "Game over..."
                                     gui_text = font.render(text, True, (0, 0, 255))
                                     blue_victory = True
         if buttons_off == False:
@@ -375,15 +411,13 @@ while run:
                     current_blue_piece = 0
                 if (rolled == 1):
                     if (current_turn == 0):
-                        if pygame.mouse.get_pressed()[0]:
-                            current_red_piece += 1
-                            rolled = 0
-                            turnButton.setColor(startButtonClicked)
+                        current_red_piece += 1
+                        rolled = 0
+                        turnButton.setColor(startButtonClicked)
                     elif (current_turn == 1):
-                        if pygame.mouse.get_pressed()[0]:
-                            current_blue_piece += 1
-                            rolled = 0
-                            turnButton.setColor(startButtonClicked)
+                        current_blue_piece += 1
+                        rolled = 0
+                        turnButton.setColor(startButtonClicked)
             else:
                 turnButton.setColor(startButtonColor)
         """ Button activity ends here """
@@ -394,5 +428,5 @@ while run:
         buttons_off = True
 
     redrawGameWindow()
-
+    
 pygame.quit()
